@@ -1,6 +1,7 @@
 package daysteps
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -23,12 +24,12 @@ type DaySteps struct {
 func (ds *DaySteps) Parse(datastring string) (err error) {
 	data := strings.Split(datastring, ",")
 	if len(data) != 2 {
-		return err
+		return errors.New("length should be 2")
 	}
 
 	ds.Steps, err = strconv.Atoi(data[0])
 	if err != nil {
-		return err
+		return fmt.Errorf("conversion error: %v", err)
 	}
 
 	ds.Duration, err = time.ParseDuration(data[1])
@@ -37,7 +38,7 @@ func (ds *DaySteps) Parse(datastring string) (err error) {
 	}
 
 	if ds.Steps <= 0 || ds.Duration <= 0 {
-		return err
+		return errors.New("length should be positive")
 	}
 
 	return nil

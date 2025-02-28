@@ -1,6 +1,7 @@
 package trainings
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ type Training struct {
 func (t *Training) Parse(datastring string) (err error) {
 	data := strings.Split(datastring, ",")
 	if len(data) != 3 {
-		return err
+		return errors.New("length should be 3")
 	}
 
 	t.Steps, err = strconv.Atoi(data[0])
@@ -29,9 +30,6 @@ func (t *Training) Parse(datastring string) (err error) {
 	}
 
 	t.TrainingType = data[1]
-	if (data[1]) != "Бег" && data[1] != "Ходьба" {
-		return err
-	}
 
 	t.Duration, err = time.ParseDuration(data[2])
 	if err != nil {
@@ -39,20 +37,26 @@ func (t *Training) Parse(datastring string) (err error) {
 	}
 
 	if t.Steps <= 0 || t.Duration.Minutes() <= 0 {
-		return err
+		return errors.New("length should be positive")
 	}
 
 	return nil
 }
 
 func (t Training) ActionInfo() string {
-	if t.TrainingType == "Бег" {
-		text := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration.Hours(), spentenergy.Distance(t.Steps), spentenergy.MeanSpeed(t.Steps, t.Duration), spentenergy.RunningSpentCalories(t.Steps, t.Personal.Weight, t.Duration))
+	distance := spentenergy.Distance(t.Steps)
+	meanSpeed := spentenergy.MeanSpeed(t.Steps, t.Duration)
+	caloriesRunning := spentenergy.RunningSpentCalories(t.Steps, t.Personal.Weight, t.Duration)
+	caloriesWalking := spentenergy.WalkingSpentCalories(t.Steps, t.Personal.Weight, t.Personal.Height, t.Duration)
+	
+	switch t.TrainingType {
+	case "Бег":
+		text := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration.Hours(), distance, meanSpeed, caloriesRunning)
 		return text
-	} else if t.TrainingType == "Ходьба" {
-		text := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration.Hours(), spentenergy.Distance(t.Steps), spentenergy.MeanSpeed(t.Steps, t.Duration), spentenergy.WalkingSpentCalories(t.Steps, t.Personal.Weight, t.Personal.Height, t.Duration))
+	case "Ходьба":
+		text := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration.Hours(), distance, meanSpeed, caloriesWalking)
 		return text
+	default:
+		return "неизвестный тип тренировки"
 	}
-
-	return "неизвестный тип тренировки"
 }
