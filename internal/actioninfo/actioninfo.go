@@ -1,11 +1,22 @@
 package actioninfo
 
 import (
-	...
+	"fmt"
+	"log"
 )
 
-// создайте интерфейс DataParser
-...
+type DataParser interface {
+	Parse(datastring string) error
+	ActionInfo() string
+}
 
-// создайте функцию Info()
-...
+func Info(dataset []string, dp DataParser) {
+	for _, v := range dataset {
+		err := dp.Parse(v)
+		if err != nil {
+			log.Fatal(err)
+			continue
+		}
+		fmt.Println(dp.ActionInfo())
+	}
+}
